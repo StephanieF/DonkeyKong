@@ -6,7 +6,7 @@ export default function App() {
       <h1 className="sr-only">Donkey Kong</h1>
       <GameCanvas />
       <footer className="app__footer">
-        <p>Arrow keys / A D to move · Space to jump</p>
+        <p>Arrows / WASD to move and climb · Space to jump</p>
         <p className="app__credits">
           Sprites:{" "}
           <a href="https://www.spriters-resource.com/atari_2600/donkeykong/asset/2110/">Zeph</a>,{" "}

@@ -1,20 +1,31 @@
 import { useEffect, useRef } from "react";
+import type { KAPLAYCtx } from "kaplay";
 import { createGame } from "./createGame";
 
 export default function GameCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!host) return;
 
-    const k = createGame(canvas);
-    return () => k.quit();
+    // In dev, StrictMode runs mount -> cleanup -> mount, and KAPLAY cannot be started
+    // again on a canvas it has already quit. So every mount gets its own canvas, and the
+    // boot is deferred a tick so the throwaway first mount never creates an instance.
+    const canvas = document.createElement("canvas");
+    host.appendChild(canvas);
+
+    let k: KAPLAYCtx | undefined;
+    const boot = setTimeout(() => {
+      k = createGame(canvas);
+    }, 0);
+
+    return () => {
+      clearTimeout(boot);
+      k?.quit();
+      canvas.remove();
+    };
   }, []);
 
-  return (
-    <div className="game">
-      <canvas ref={canvasRef} />
-    </div>
-  );
+  return <div className="game" ref={hostRef} />;
 }

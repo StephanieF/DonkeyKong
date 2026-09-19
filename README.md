@@ -88,7 +88,7 @@ stateDiagram-v2
   GameOver --> Title
 ```
 
-Only `Title` and a placeholder `Level` exist today (`src/game/scenes/`).
+All of these states exist today (`src/game/scenes/level.ts`), except that barrels only score when jumped and there is no bonus timer yet.
 
 ## Project structure
 
@@ -111,9 +111,14 @@ Only `Title` and a placeholder `Level` exist today (`src/game/scenes/`).
         ├── constants.ts     # resolution, stage placement, physics tuning, palette
         ├── sprites.ts       # frame table indexing atlas.png
         ├── assets.ts        # font, sprite atlas and sound loading
+        ├── stage1.ts        # girder surfaces, ladders, Kong/Pauline positions (measured from the art)
+        ├── mario.ts         # Mario movement: walk, jump, climb, fall damage (pure logic)
+        ├── barrel.ts        # barrel throw + roll + drop physics (pure logic)
+        ├── rules.ts         # hits, jump-over scoring, reaching Pauline (pure logic)
+        ├── game.test.ts     # vitest: geometry, barrel route, full climb to Pauline, hit/clear
         ├── hud.ts           # 1UP / high score / lives readout
         ├── state.ts         # score, high score, lives
-        └── scenes/          # title.ts, level.ts
+        └── scenes/          # title.ts, level.ts (draws the logic, plays sounds, runs death/win flow)
 ```
 
 If you change `assets-src/arcade-style.png`, regenerate the atlas with `pip install pillow && python3 scripts/build-atlas.py`.
@@ -126,7 +131,9 @@ npm install
 npm run dev      # http://localhost:5173
 ```
 
-Other scripts: `npm run build`, `npm run preview`, `npm run typecheck`.
+Other scripts: `npm test` (game-logic tests), `npm run build`, `npm run preview`, `npm run typecheck`.
+
+**Controls:** arrows or WASD to walk and climb ladders, Space to jump. Jump *toward* an oncoming barrel: a standing jump is too short to clear one.
 
 ## Deploying to Cloudflare Pages
 
@@ -152,14 +159,15 @@ The first run asks you to create the Pages project (`donkeykong`, per `wrangler.
 
 ## Roadmap
 
-- [x] **0. Scaffold**: Vite + React + KAPLAY, title scene, level with movement/jump/audio, builds clean
-- [x] **1. Sprites and look**: arcade-style atlas, pixel font, HUD with sprite digits, title screen, stage 1 artwork with animated Kong and Pauline, Mario with walk/jump frames
-- [ ] **1b. Stage 2**: the rivets stage artwork and cyan palette variants are already in the atlas
-- [ ] **2. Level collision**: sloped girder surfaces, ladders (climb frames are in the atlas), so Mario stops jumping through girders
-- [ ] **3. Hazards**: Kong throwing barrels, barrel physics down girders, jump-over detection (`over` sound)
-- [ ] **4. Game rules**: score, lives, HUD, death (`die`), level clear (`victory`), game over
-- [ ] **5. Polish**: on-screen touch controls for mobile, pause, high score in `localStorage`, mute toggle
-- [ ] **6. Ship**: Cloudflare Pages project, custom domain, CI typecheck on PRs
+- [x] **0. Scaffold**: Vite + React + KAPLAY, title scene, builds clean
+- [x] **1. Sprites and look**: arcade-style atlas, pixel font, HUD with sprite digits, title screen, stage 1 artwork
+- [x] **2. Girders and ladders**: Mario walks the sloped girders and climbs ladders (climb frames), falling too far is fatal
+- [x] **3. Barrels**: Kong throws one every 2 to 3 seconds; they roll down the slopes, drop to the next girder, and burn out at the oil drum
+- [x] **4. Game rules**: 100 points per barrel jumped (`over` sound), death by barrel, Kong or a long fall (`die`), 3 lives, game over, reaching Pauline clears the level (`victory`, +1000)
+- [ ] **4b. Missing rules**: bonus timer, barrels that take ladders, fireballs, hammers, level speed-up
+- [ ] **5. Stage 2**: the rivets stage artwork and cyan palette are already in the atlas
+- [ ] **6. Polish**: on-screen touch controls for mobile, pause, high score in `localStorage`, mute toggle
+- [ ] **7. Ship**: Cloudflare Pages project, custom domain, CI typecheck and tests on PRs
 
 ## Asset licensing and credits
 
@@ -172,8 +180,10 @@ The sprites and sounds come from a commercial game and fan rips, so treat this a
 
 Before making the deployed site public, decide whether to keep the site private or unlisted, swap in original art and audio, or get permission from the rights holders.
 
-## Known gaps
+## Design notes and known gaps
 
-- Mario walks and jumps on the flat bottom floor only; he can jump through the sloped girders because their collision isn't built yet (milestone 2).
-- No barrels, hazards, scoring or death yet, so the HUD always reads 000000 and 3 lives.
-- Keyboard only.
+- **Tunable numbers** live in `src/game/constants.ts`: barrel interval, speeds, jump height, points. The Atari 2600 values aren't documented, so these are playable guesses, not measurements.
+- **Ladders:** the artwork draws four ladders with a gap. Two of them (x=84 floor to girder 5, x=92 girder 1 to girder 2) are the only link between their girders, so they are climbable or the stage couldn't be finished. The other two (x=68, x=140) stay decorative. The list is `LADDERS` in `stage1.ts`, and a test proves the floor-to-Pauline route works.
+- **Barrels** drop past the top platform after Kong throws them, so they never roll into Pauline. They don't yet choose to take ladders.
+- **Mario** can't walk off girder ends (he can only leave them by jumping) and can't walk into the oil drum. Touching Kong is fatal, so the left ladder on the top platform is a trap.
+- Keyboard only. Sounds are untested by ear: they fire on jump, walk, barrel jump, death and level clear.
