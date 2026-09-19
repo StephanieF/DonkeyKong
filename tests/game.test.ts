@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { type Barrel, spawnBarrel, stepBarrel } from "./barrel";
-import { createMario, type Input, type Mario, stepMario } from "./mario";
-import { hitsBarrel, jumpedOver, reachedPauline } from "./rules";
+import { type Barrel, nextThrowDelay, spawnBarrel, stepBarrel } from "../src/game/barrel";
+import { createMario, type Input, type Mario, stepMario } from "../src/game/mario";
+import { hitsBarrel, jumpedOver, reachedPauline } from "../src/game/rules";
 import {
   FLOOR,
   GIRDERS,
@@ -11,7 +11,7 @@ import {
   landingGirder,
   rollDirection,
   surfaceY,
-} from "./stage1";
+} from "../src/game/stage1";
 
 const DT = 1 / 60;
 const airborne = (m: Mario) => m.mode === "air"; // avoids TS narrowing on earlier assignments
@@ -60,6 +60,30 @@ describe("barrels", () => {
     expect(visited).toEqual([1, 2, 3, 4, 5, 6]);
     expect(t).toBeGreaterThan(20);
     expect(t).toBeLessThan(45);
+  });
+});
+
+describe("barrel throw timing", () => {
+  // small seeded generator so the test is deterministic
+  const seeded = (seed: number) => () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+
+  it("varies widely, mixes in quick follow-ups, and keeps a similar average rate", () => {
+    const random = seeded(42);
+    const delays = Array.from({ length: 20000 }, () => nextThrowDelay(random));
+    const mean = delays.reduce((a, b) => a + b, 0) / delays.length;
+    const sd = Math.sqrt(delays.reduce((a, d) => a + (d - mean) ** 2, 0) / delays.length);
+    const quick = delays.filter((d) => d <= 1.2).length / delays.length;
+
+    expect(Math.min(...delays)).toBeGreaterThanOrEqual(0.8);
+    expect(Math.max(...delays)).toBeLessThanOrEqual(4.0);
+    expect(mean).toBeGreaterThan(2.0);
+    expect(mean).toBeLessThan(2.6);
+    expect(sd).toBeGreaterThan(0.9); // the old 2.0-3.0s range had a spread of ~0.29
+    expect(quick).toBeGreaterThan(0.2);
+    expect(quick).toBeLessThan(0.3);
   });
 });
 

@@ -1,8 +1,7 @@
 import type { KAPLAYCtx } from "kaplay";
 import type { SoundName } from "../assets";
-import { type Barrel, spawnBarrel, stepBarrel } from "../barrel";
+import { type Barrel, nextThrowDelay, spawnBarrel, stepBarrel } from "../barrel";
 import {
-  BARREL_INTERVAL,
   FIRST_BARREL_DELAY,
   POINTS_JUMP_BARREL,
   POINTS_LEVEL_CLEAR,
@@ -133,7 +132,7 @@ export function registerLevelScene(k: KAPLAYCtx) {
       if (k.time() >= nextThrow) {
         const sim = spawnBarrel();
         barrels.push({ sim, obj: addBarrelObj() });
-        nextThrow = k.time() + k.rand(BARREL_INTERVAL[0], BARREL_INTERVAL[1]);
+        nextThrow = k.time() + nextThrowDelay();
       }
 
       let hit = events.fatalFall || touchesKong(mario);

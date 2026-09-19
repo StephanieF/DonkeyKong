@@ -17,9 +17,13 @@ export const MAX_SAFE_FALL = 30; // falling further than this from the apex is f
 export const CLIMB_GRAB = 5; // how close (px) to a ladder's centre Mario must be to grab it
 
 // Barrels
-export const BARREL_SPEED = 40;
-export const BARREL_INTERVAL: readonly [min: number, max: number] = [2.0, 3.0]; // seconds between throws
-export const FIRST_BARREL_DELAY = 1.5;
+export const BARREL_SPEED = 35;
+// Seconds between throws. Most gaps are a wide random pick; some throws come as a quick
+// follow-up so barrels arrive in irregular bursts. Average gap is ~2.3s.
+export const BARREL_INTERVAL: readonly [min: number, max: number] = [1.5, 4.0];
+export const BARREL_QUICK_CHANCE = 0.25; // chance a throw is followed almost immediately by another
+export const BARREL_QUICK_INTERVAL: readonly [min: number, max: number] = [0.8, 1.2];
+export const FIRST_BARREL_DELAY = 1.75;
 
 // Scoring (the Atari 2600 values aren't documented; these are tunable guesses)
 export const POINTS_JUMP_BARREL = 100;

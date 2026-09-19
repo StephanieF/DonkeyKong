@@ -1,4 +1,10 @@
-import { BARREL_SPEED, GRAVITY } from "./constants";
+import {
+  BARREL_INTERVAL,
+  BARREL_QUICK_CHANCE,
+  BARREL_QUICK_INTERVAL,
+  BARREL_SPEED,
+  GRAVITY,
+} from "./constants";
 import { GIRDERS, KONG_HAND, landingGirder, OIL_DRUM_X, FLOOR, rollDirection, surfaceY } from "./stage1";
 
 /** A barrel in stage-local pixels; (x, y) is the point at the bottom centre. */
@@ -67,4 +73,12 @@ export function stepBarrel(b: Barrel, dt: number): boolean {
     }
   }
   return b.y < 260;
+}
+
+/**
+ * Seconds until Kong's next throw. `random` returns [0, 1) and is injectable for tests.
+ */
+export function nextThrowDelay(random: () => number = Math.random): number {
+  const [min, max] = random() < BARREL_QUICK_CHANCE ? BARREL_QUICK_INTERVAL : BARREL_INTERVAL;
+  return min + random() * (max - min);
 }

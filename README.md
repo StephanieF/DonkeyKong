@@ -98,6 +98,7 @@ All of these states exist today (`src/game/scenes/level.ts`), except that barrel
 ├── wrangler.toml            # Cloudflare Pages config for `npm run deploy`
 ├── assets-src/              # raw sprite sheets (not shipped)
 ├── scripts/build-atlas.py   # raw sheet -> transparent atlas
+├── tests/game.test.ts       # vitest: geometry, barrel route, full climb to Pauline, hit/clear
 ├── public/assets/
 │   ├── audio/               # dk-a2600_{jump,over,walk,die,victory}.wav
 │   └── sprites/atlas.png    # generated, black keyed to transparent
@@ -115,7 +116,6 @@ All of these states exist today (`src/game/scenes/level.ts`), except that barrel
         ├── mario.ts         # Mario movement: walk, jump, climb, fall damage (pure logic)
         ├── barrel.ts        # barrel throw + roll + drop physics (pure logic)
         ├── rules.ts         # hits, jump-over scoring, reaching Pauline (pure logic)
-        ├── game.test.ts     # vitest: geometry, barrel route, full climb to Pauline, hit/clear
         ├── hud.ts           # 1UP / high score / lives readout
         ├── state.ts         # score, high score, lives
         └── scenes/          # title.ts, level.ts (draws the logic, plays sounds, runs death/win flow)
@@ -162,7 +162,7 @@ The first run asks you to create the Pages project (`donkeykong`, per `wrangler.
 - [x] **0. Scaffold**: Vite + React + KAPLAY, title scene, builds clean
 - [x] **1. Sprites and look**: arcade-style atlas, pixel font, HUD with sprite digits, title screen, stage 1 artwork
 - [x] **2. Girders and ladders**: Mario walks the sloped girders and climbs ladders (climb frames), falling too far is fatal
-- [x] **3. Barrels**: Kong throws one every 2 to 3 seconds; they roll down the slopes, drop to the next girder, and burn out at the oil drum
+- [x] **3. Barrels**: Kong throws at irregular intervals (1.5 to 4 seconds, plus a 25% chance of a quick follow-up about 1 second later, ~2.3s on average); they roll down the slopes, drop to the next girder, and burn out at the oil drum
 - [x] **4. Game rules**: 100 points per barrel jumped (`over` sound), death by barrel, Kong or a long fall (`die`), 3 lives, game over, reaching Pauline clears the level (`victory`, +1000)
 - [ ] **4b. Missing rules**: bonus timer, barrels that take ladders, fireballs, hammers, level speed-up
 - [ ] **5. Stage 2**: the rivets stage artwork and cyan palette are already in the atlas
@@ -182,7 +182,7 @@ Before making the deployed site public, decide whether to keep the site private 
 
 ## Design notes and known gaps
 
-- **Tunable numbers** live in `src/game/constants.ts`: barrel interval, speeds, jump height, points. The Atari 2600 values aren't documented, so these are playable guesses, not measurements.
+- **Tunable numbers** live in `src/game/constants.ts`: barrel speed, throw interval and quick-follow-up chance, jump height, points. The Atari 2600 values aren't documented, so these are playable guesses, not measurements.
 - **Ladders:** the artwork draws four ladders with a gap. Two of them (x=84 floor to girder 5, x=92 girder 1 to girder 2) are the only link between their girders, so they are climbable or the stage couldn't be finished. The other two (x=68, x=140) stay decorative. The list is `LADDERS` in `stage1.ts`, and a test proves the floor-to-Pauline route works.
 - **Barrels** drop past the top platform after Kong throws them, so they never roll into Pauline. They don't yet choose to take ladders.
 - **Mario** can't walk off girder ends (he can only leave them by jumping) and can't walk into the oil drum. Touching Kong is fatal, so the left ladder on the top platform is a trap.
