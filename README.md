@@ -12,15 +12,19 @@ A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY**
 | Game engine | [KAPLAY](https://kaplayjs.com/) 3001 | Scenes, sprites, physics, input, audio. Runs with `global: false` |
 | Bundler | Vite 8 | `npm run dev` / `npm run build` |
 | Hosting | Cloudflare Pages | Static site: build output is `dist/` |
-| Resolution | 160 × 192 logical | The Atari 2600 picture size, letterboxed and scaled with pixelated rendering |
+| Resolution | 224 × 256 logical | Arcade-style portrait playfield, letterboxed and scaled with pixelated rendering |
+| Font | Press Start 2P (`@fontsource`) | Self-hosted, loaded at 8px so text stays crisp |
 
 ## Resources
 
 | Asset | Source | Where it lives |
 | --- | --- | --- |
-| Sprites ("General Sprites", 409×280 PNG) | [The Spriters Resource, asset 2110](https://www.spriters-resource.com/atari_2600/donkeykong/asset/2110/) | `public/assets/sprites/general.png` (**manual download**, not yet added) |
-| Sound effects (jump, over, walk, die, victory) | [The Mushroom Kingdom, DK A2600 WAVs](https://themushroomkingdom.net/media/dk-a2600/wav) | `public/assets/audio/dk-a2600_*.wav` (added) |
+| Arcade-style sprites (Kong, Mario, Pauline, barrels, fireballs, digits, lives, stages), 459×387 PNG, by **Nick edits** | [The Spriters Resource, asset 487599](https://www.spriters-resource.com/custom_edited/donkeykongcustoms/asset/487599/) | `assets-src/arcade-style.png`, built into `public/assets/sprites/atlas.png` (**in use**) |
+| Original Atari 2600 sprites ("General Sprites", 409×280 PNG), ripped by **Zeph** | [The Spriters Resource, asset 2110](https://www.spriters-resource.com/atari_2600/donkeykong/asset/2110/) | `assets-src/general.png` (reference, not used yet) |
+| Sound effects (jump, over, walk, die, victory), by **The Blue Prophet** | [The Mushroom Kingdom, DK A2600 WAVs](https://themushroomkingdom.net/media/dk-a2600/wav) | `public/assets/audio/dk-a2600_*.wav` |
 | Game engine | [KAPLAY docs](https://kaplayjs.com/docs/) | npm dependency |
+
+Sprite sheets are downloaded from `https://www.spriters-resource.com/media/assets/<id-prefix>/<id>.png` (the page's "Download Asset" link); the site rejects script requests without a browser User-Agent and Referer.
 
 ## Architecture
 
@@ -29,13 +33,15 @@ How the external services, the repo, and the runtime relate:
 ```mermaid
 graph LR
   subgraph External["External resources"]
-    SR["The Spriters Resource<br/>General Sprites PNG"]
+    SR["The Spriters Resource<br/>arcade-style + Atari sprite sheets"]
     TMK["The Mushroom Kingdom<br/>Atari 2600 WAV files"]
     NPM["npm registry<br/>react, kaplay, vite"]
   end
 
   subgraph Repo["Git repository"]
-    ASSETS["public/assets<br/>sprites + audio"]
+    RAW["assets-src<br/>raw sprite sheets"]
+    KEY["scripts/build-atlas.py<br/>keys black to transparent"]
+    ASSETS["public/assets<br/>atlas.png + audio"]
     SRC["src<br/>React app + game code"]
   end
 
@@ -51,7 +57,9 @@ graph LR
     WA["Web Audio"]
   end
 
-  SR -. "manual download" .-> ASSETS
+  SR -. "download" .-> RAW
+  RAW --> KEY
+  KEY --> ASSETS
   TMK -. "download" .-> ASSETS
   NPM --> BUILD
   ASSETS --> BUILD
@@ -88,20 +96,27 @@ Only `Title` and a placeholder `Level` exist today (`src/game/scenes/`).
 .
 ├── index.html
 ├── wrangler.toml            # Cloudflare Pages config for `npm run deploy`
+├── assets-src/              # raw sprite sheets (not shipped)
+├── scripts/build-atlas.py   # raw sheet -> transparent atlas
 ├── public/assets/
 │   ├── audio/               # dk-a2600_{jump,over,walk,die,victory}.wav
-│   └── sprites/             # put general.png here
+│   └── sprites/atlas.png    # generated, black keyed to transparent
 └── src/
     ├── main.tsx             # React entry
-    ├── App.tsx              # page layout
+    ├── App.tsx              # page layout + credits footer
     ├── index.css
     └── game/
         ├── GameCanvas.tsx   # React <-> KAPLAY bridge (mount / cleanup)
         ├── createGame.ts    # kaplay() init, asset load, scene registration
-        ├── constants.ts     # resolution, physics tuning, scene names
-        ├── assets.ts        # sound + sprite loading
-        └── scenes/          # title.ts, level.ts (placeholder)
+        ├── constants.ts     # resolution, stage placement, physics tuning, palette
+        ├── sprites.ts       # frame table indexing atlas.png
+        ├── assets.ts        # font, sprite atlas and sound loading
+        ├── hud.ts           # 1UP / high score / lives readout
+        ├── state.ts         # score, high score, lives
+        └── scenes/          # title.ts, level.ts
 ```
+
+If you change `assets-src/arcade-style.png`, regenerate the atlas with `pip install pillow && python3 scripts/build-atlas.py`.
 
 ## Getting started
 
@@ -137,25 +152,28 @@ The first run asks you to create the Pages project (`donkeykong`, per `wrangler.
 
 ## Roadmap
 
-- [x] **0. Scaffold**: Vite + React + KAPLAY, title scene, placeholder level with movement/jump/audio, builds clean
-- [ ] **1. Sprites**: download `general.png`, slice into a KAPLAY atlas (Mario, Kong, barrels, Pauline, girders, ladders), add a debug scene that shows every frame
-- [ ] **2. Level layout**: girders, ladders, tile-accurate collision, Mario climb/walk animations
+- [x] **0. Scaffold**: Vite + React + KAPLAY, title scene, level with movement/jump/audio, builds clean
+- [x] **1. Sprites and look**: arcade-style atlas, pixel font, HUD with sprite digits, title screen, stage 1 artwork with animated Kong and Pauline, Mario with walk/jump frames
+- [ ] **1b. Stage 2**: the rivets stage artwork and cyan palette variants are already in the atlas
+- [ ] **2. Level collision**: sloped girder surfaces, ladders (climb frames are in the atlas), so Mario stops jumping through girders
 - [ ] **3. Hazards**: Kong throwing barrels, barrel physics down girders, jump-over detection (`over` sound)
 - [ ] **4. Game rules**: score, lives, HUD, death (`die`), level clear (`victory`), game over
-- [ ] **5. Polish**: pixel font, on-screen touch controls for mobile, pause, high score in `localStorage`, mute toggle
+- [ ] **5. Polish**: on-screen touch controls for mobile, pause, high score in `localStorage`, mute toggle
 - [ ] **6. Ship**: Cloudflare Pages project, custom domain, CI typecheck on PRs
 
-## Asset licensing
+## Asset licensing and credits
 
-The sprites and sounds are ripped from a commercial game, and neither source page states a license (the Spriters Resource page has none; The Mushroom Kingdom credits its contributor, The Blue Prophet). That is fine for a private learning project. Before making the deployed site public, decide whether to:
+The sprites and sounds come from a commercial game and fan rips, so treat this as a private learning project unless you sort out rights first.
 
-- keep the repo private and the site unlisted, or
-- swap in original art/audio, or
-- get permission from the rights holders.
+- **Zeph's** Atari 2600 rip states "No credit necessary".
+- **Nick edits'** arcade-style sheet asks: "Please give credit if used". Credit is shown in the page footer and on the title screen. Keep it if you publish.
+- **The Blue Prophet's** sounds carry no stated license; they are credited in the same places.
+- Donkey Kong itself belongs to Nintendo, and neither source page grants rights to it.
 
-Also credit the sprite ripper (Zeph) and sound contributor (The Blue Prophet) somewhere visible if you do publish.
+Before making the deployed site public, decide whether to keep the site private or unlisted, swap in original art and audio, or get permission from the rights holders.
 
 ## Known gaps
 
-- The sprite sheet cannot be fetched by script (the Spriters Resource blocks direct download URLs), so add it by hand.
-- KAPLAY's default font is blurry at 160 px wide; a bitmap pixel font is on the roadmap.
+- Mario walks and jumps on the flat bottom floor only; he can jump through the sloped girders because their collision isn't built yet (milestone 2).
+- No barrels, hazards, scoring or death yet, so the HUD always reads 000000 and 3 lives.
+- Keyboard only.

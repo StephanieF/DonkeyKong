@@ -23,7 +23,7 @@ export function createGame(canvas: HTMLCanvasElement): KAPLAYCtx {
   loadAssets(k);
   registerTitleScene(k);
   registerLevelScene(k);
-  k.go(SCENES.title);
+  k.onLoad(() => k.go(SCENES.title));
 
   return k;
 }

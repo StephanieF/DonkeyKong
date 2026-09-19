@@ -1,8 +1,9 @@
 :root {
   color-scheme: dark;
-  --bg: #000;
+  --bg: #050508;
   --fg: #f4f4f4;
-  --accent: #e4572e;
+  --muted: #8a8aa8;
+  --frame: #2a2a44;
 }
 
 * {
@@ -22,6 +23,15 @@ body {
   font-family: "Courier New", monospace;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -31,27 +41,39 @@ body {
   padding: 16px;
 }
 
-.app__title {
-  margin: 0;
-  font-size: 1.25rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
+.app__footer {
+  flex: none;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
-.app__help {
+.app__footer p {
   margin: 0;
-  font-size: 0.8rem;
-  opacity: 0.7;
 }
 
-/* The game keeps the Atari 2600's 160x192 aspect ratio; KAPLAY letterboxes inside. */
+.app__credits {
+  font-size: 0.65rem;
+  opacity: 0.8;
+}
+
+.app__footer a {
+  color: inherit;
+}
+
+/* The game keeps the arcade's 224x256 portrait ratio; KAPLAY letterboxes inside. */
 .game {
   flex: 1;
   min-height: 0;
   width: 100%;
-  max-width: calc((100vh - 120px) * 160 / 192);
-  aspect-ratio: 160 / 192;
+  max-width: calc((100vh - 96px) * 224 / 256);
+  aspect-ratio: 224 / 256;
+  background: #000;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 3px var(--frame),
+    0 0 48px rgba(120, 120, 255, 0.12);
 }
 
 .game canvas {
