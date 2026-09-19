@@ -1,0 +1,5 @@
+# Cloudflare Pages config. Used by `npm run deploy` (wrangler pages deploy).
+# Git-connected Pages builds ignore this and use the dashboard settings instead.
+name = "donkeykong"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-09-01"
