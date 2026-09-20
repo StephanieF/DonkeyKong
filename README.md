@@ -1,6 +1,6 @@
 # Donkey Kong (Atari 2600) in React
 
-A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY** and hosted on **Cloudflare Pages**.
+A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY** and hosted on **Cloudflare Workers** (static assets).
 
 > Fan project for learning. Donkey Kong is a Nintendo property and the Atari 2600 port was made by Coleco; see [Asset licensing](#asset-licensing) before publishing.
 
@@ -11,7 +11,7 @@ A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY**
 | UI shell | React 19 + TypeScript | Owns the page, canvas element, and (later) HUD/menus/touch controls |
 | Game engine | [KAPLAY](https://kaplayjs.com/) 3001 | Scenes, sprites, physics, input, audio. Runs with `global: false` |
 | Bundler | Vite 8 | `npm run dev` / `npm run build` |
-| Hosting | Cloudflare Pages | Static site: build output is `dist/` |
+| Hosting | Cloudflare Workers (static assets) | Static site: build output is `dist/` |
 | Resolution | 224 × 256 logical | Arcade-style portrait playfield, letterboxed and scaled with pixelated rendering |
 | Font | Press Start 2P (`@fontsource`) | Self-hosted, loaded at 8px so text stays crisp |
 
@@ -46,8 +46,8 @@ graph LR
   end
 
   subgraph CF["Cloudflare"]
-    BUILD["Pages build<br/>npm run build"]
-    CDN["Pages CDN<br/>static dist/"]
+    BUILD["Workers Build<br/>npm run build"]
+    CDN["Worker static assets<br/>dist/"]
   end
 
   subgraph Browser["Player's browser"]
@@ -95,7 +95,7 @@ All of these states exist today (`src/game/scenes/level.ts`), except that barrel
 ```
 .
 ├── index.html
-├── wrangler.toml            # Cloudflare Pages config for `npm run deploy`
+├── wrangler.toml            # Cloudflare Worker (static assets) config for `npm run deploy`
 ├── assets-src/              # raw sprite sheets (not shipped)
 ├── scripts/build-atlas.py   # raw sheet -> transparent atlas
 ├── tests/game.test.ts       # vitest: geometry, barrel route, full climb to Pauline, hit/clear
@@ -135,18 +135,20 @@ Other scripts: `npm test` (game-logic tests), `npm run build`, `npm run preview`
 
 **Controls:** arrows or WASD to walk and climb ladders, Space to jump. Jump *toward* an oncoming barrel: a standing jump is too short to clear one.
 
-## Deploying to Cloudflare Pages
+## Deploying to Cloudflare
 
-**Option A: Git integration (recommended).** In the Cloudflare dashboard, go to Workers & Pages > Create > Pages > Connect to Git, then set:
+This ships as a Worker with static assets (Cloudflare's current model — the old separate "Pages" product is being folded into Workers), configured via `wrangler.toml`'s `[assets]` block.
+
+**Option A: Git integration (recommended).** In the Cloudflare dashboard, go to Compute (Workers) > Create > Import a repository, then set:
 
 | Setting | Value |
 | --- | --- |
-| Framework preset | Vite (or None) |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
-| Environment variable | `NODE_VERSION` = `26` |
+| Deploy command | `npx wrangler deploy` |
+| Non-production branch deploy command | `npx wrangler versions upload` |
+| Path | `/` |
 
-Every push to `main` deploys to production; other branches get preview URLs.
+Every push to `main` deploys to production; other branches get preview versions.
 
 **Option B: Direct upload from your machine.**
 
@@ -155,19 +157,8 @@ npx wrangler login
 npm run deploy
 ```
 
-The first run asks you to create the Pages project (`donkeykong`, per `wrangler.toml`).
+The first run creates the Worker (`donkeykong`, per `wrangler.toml`).
 
-## Roadmap
-
-- [x] **0. Scaffold**: Vite + React + KAPLAY, title scene, builds clean
-- [x] **1. Sprites and look**: arcade-style atlas, pixel font, HUD with sprite digits, title screen, stage 1 artwork
-- [x] **2. Girders and ladders**: Mario walks the sloped girders and climbs ladders (climb frames), falling too far is fatal
-- [x] **3. Barrels**: Kong throws at irregular intervals (1.5 to 4 seconds, plus a 25% chance of a quick follow-up about 1 second later, ~2.3s on average); they roll down the slopes, drop to the next girder, and burn out at the oil drum
-- [x] **4. Game rules**: 100 points per barrel jumped (`over` sound), death by barrel, Kong or a long fall (`die`), 3 lives, game over, reaching Pauline clears the level (`victory`, +1000)
-- [ ] **4b. Missing rules**: bonus timer, barrels that take ladders, fireballs, hammers, level speed-up
-- [ ] **5. Stage 2**: the rivets stage artwork and cyan palette are already in the atlas
-- [ ] **6. Polish**: on-screen touch controls for mobile, pause, high score in `localStorage`, mute toggle
-- [ ] **7. Ship**: Cloudflare Pages project, custom domain, CI typecheck and tests on PRs
 
 ## Asset licensing and credits
 
@@ -180,10 +171,6 @@ The sprites and sounds come from a commercial game and fan rips, so treat this a
 
 Before making the deployed site public, decide whether to keep the site private or unlisted, swap in original art and audio, or get permission from the rights holders.
 
-## Design notes and known gaps
+## Design notes
 
 - **Tunable numbers** live in `src/game/constants.ts`: barrel speed, throw interval and quick-follow-up chance, jump height, points. The Atari 2600 values aren't documented, so these are playable guesses, not measurements.
-- **Ladders:** the artwork draws four ladders with a gap. Two of them (x=84 floor to girder 5, x=92 girder 1 to girder 2) are the only link between their girders, so they are climbable or the stage couldn't be finished. The other two (x=68, x=140) stay decorative. The list is `LADDERS` in `stage1.ts`, and a test proves the floor-to-Pauline route works.
-- **Barrels** drop past the top platform after Kong throws them, so they never roll into Pauline. They don't yet choose to take ladders.
-- **Mario** can't walk off girder ends (he can only leave them by jumping) and can't walk into the oil drum. Touching Kong is fatal, so the left ladder on the top platform is a trap.
-- Keyboard only. Sounds are untested by ear: they fire on jump, walk, barrel jump, death and level clear.
