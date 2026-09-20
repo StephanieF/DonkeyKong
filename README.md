@@ -1,8 +1,8 @@
 # Donkey Kong (Atari 2600) in React
 
-A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY** and hosted on **Cloudflare Workers** (static assets).
+A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY** and hosted on **Cloudflare Workers**.
 
-> Fan project for learning. Donkey Kong is a Nintendo property and the Atari 2600 port was made by Coleco; see [Asset licensing](#asset-licensing) before publishing.
+> Fun project for learning. Donkey Kong is a Nintendo property and the Atari 2600 port was made by Coleco; see [Asset licensing](#asset-licensing) before publishing.
 
 ## Stack
 
@@ -71,7 +71,7 @@ graph LR
   KAPLAY --> WA
 ```
 
-Runtime ownership: React owns the `<canvas>` element and its lifecycle (mount creates the KAPLAY instance, unmount calls `k.quit()`). KAPLAY owns everything drawn on the canvas. They talk only through `createGame(canvas)`; if the HUD moves into React later, add a small event bridge rather than sharing state directly.
+Runtime ownership: React owns the `<canvas>` element and its lifecycle (mount creates the KAPLAY instance, unmount calls `k.quit()`). KAPLAY owns everything drawn on the canvas. They talk only through `createGame(canvas)`.
 
 ### Game flow
 
@@ -87,8 +87,6 @@ stateDiagram-v2
   LevelComplete --> Level: Next round
   GameOver --> Title
 ```
-
-All of these states exist today (`src/game/scenes/level.ts`), except that barrels only score when jumped and there is no bonus timer yet.
 
 ## Project structure
 
@@ -137,32 +135,10 @@ Other scripts: `npm test` (game-logic tests), `npm run build`, `npm run preview`
 
 ## Deploying to Cloudflare
 
-This ships as a Worker with static assets (Cloudflare's current model — the old separate "Pages" product is being folded into Workers), configured via `wrangler.toml`'s `[assets]` block.
-
-**Option A: Git integration (recommended).** In the Cloudflare dashboard, go to Compute (Workers) > Create > Import a repository, then set:
-
-| Setting | Value |
-| --- | --- |
-| Build command | `npm run build` |
-| Deploy command | `npx wrangler deploy` |
-| Non-production branch deploy command | `npx wrangler versions upload` |
-| Path | `/` |
-
-Every push to `main` deploys to production; other branches get preview versions.
-
-**Option B: Direct upload from your machine.**
-
-```bash
-npx wrangler login
-npm run deploy
-```
-
-The first run creates the Worker (`donkeykong`, per `wrangler.toml`).
+This ships as a Worker with static assets.
 
 
 ## Asset licensing and credits
-
-The sprites and sounds come from a commercial game and fan rips, so treat this as a private learning project unless you sort out rights first.
 
 - **Zeph's** Atari 2600 rip states "No credit necessary".
 - **Nick edits'** arcade-style sheet asks: "Please give credit if used". Credit is shown in the page footer and on the title screen. Keep it if you publish.
