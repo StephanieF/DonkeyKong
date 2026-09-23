@@ -119,7 +119,7 @@ stateDiagram-v2
         └── scenes/          # title.ts, level.ts (draws the logic, plays sounds, runs death/win flow)
 ```
 
-If you change `assets-src/arcade-style.png`, regenerate the atlas with `pip install pillow && python3 scripts/build-atlas.py`.
+Changing `assets-src/arcade-style.png`, requires regeneration of the atlas with `pip install pillow && python3 scripts/build-atlas.py`.
 
 ## Getting started
 
