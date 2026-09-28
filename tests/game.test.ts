@@ -125,11 +125,19 @@ describe("mario", () => {
     expect(reachedPauline(m)).toBe(true);
   });
 
-  it("can't climb the decorative broken ladders", () => {
-    const m = createMario();
-    walkTo(m, 68);
-    settle(m, input({ up: true }), 1);
-    expect(m.mode).toBe("ground");
+  it("can't climb the broken ladders", () => {
+    for (const [girder, x] of [
+      [3, 68],
+      [2, 140],
+    ] as const) {
+      const m = createMario();
+      m.girder = girder;
+      m.x = x;
+      m.y = surfaceY(GIRDERS[girder], x);
+      settle(m, input({ up: true }), 1);
+      expect(m.mode, `broken ladder at x=${x}`).toBe("ground");
+      expect(m.girder).toBe(girder);
+    }
   });
 
   it("can't walk into the oil drum", () => {

@@ -41,22 +41,22 @@ export const TOP_PLATFORM = 0;
 export const OIL_DRUM_X = 24;
 
 /**
- * Ladders Mario can climb. The artwork also has two decorative broken ladders (x=68
- * and x=140) that are deliberately not listed. The two ladders at x=84 and x=92 are drawn
- * with a gap but are the only link between their girders, so they must be climbable
- * for the stage to be completable.
+ * Ladders Mario can climb. Broken ladders are not climbable: the two in the artwork
+ * (x=68 and x=140) are deliberately not listed. The ladders at x=84 (floor) and x=92
+ * (under the top girder) are the only links between their girders, so they are drawn
+ * whole in assets-src/arcade-style.png.
  */
 export const LADDERS: readonly Ladder[] = [
   { x: 4, upper: 0, lower: 1 },
   { x: 92, upper: 0, lower: 1 },
-  { x: 92, upper: 1, lower: 2 }, // drawn broken, required route
+  { x: 92, upper: 1, lower: 2 },
   { x: 36, upper: 2, lower: 3 },
   { x: 76, upper: 2, lower: 3 },
   { x: 116, upper: 3, lower: 4 },
   { x: 156, upper: 3, lower: 4 },
   { x: 36, upper: 4, lower: 5 },
   { x: 100, upper: 4, lower: 5 },
-  { x: 84, upper: 5, lower: 6 }, // drawn broken, required route
+  { x: 84, upper: 5, lower: 6 },
 ];
 
 /** Where Kong and Pauline stand on the top platform. */

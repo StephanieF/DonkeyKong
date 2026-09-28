@@ -2,7 +2,9 @@
 
 A recreation of the 1982 Atari 2600 *Donkey Kong*, built with **React + KAPLAY** and hosted on **Cloudflare Workers**.
 
-> Fun project for learning. Donkey Kong is a Nintendo property and the Atari 2600 port was made by Coleco; see [Asset licensing](#asset-licensing) before publishing.
+[try is here](https://donkeykong.stephanie-fuda.workers.dev/){:target="_blank"}
+
+> Donkey Kong is a Nintendo property and the Atari 2600 port was made by Coleco. This project os for educational purposes only. See [Asset licensing](#asset-licensing) before forking.
 
 ## Stack
 
